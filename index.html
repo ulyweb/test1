@@ -419,7 +419,7 @@ document.getElementById('btnReset').onclick=()=>{if(confirm('Reset to the built-
 // event modal
 function openModal(di,ei){
   editRef={di,ei};
-  const e=ei!==null?trip.days[di].events{type:'baseball',time:'',desc:'',note:'',cost:''};
+  const e = ei!==null ? trip.days[di].events[ei] : {type:'baseball',time:'',desc:'',note:'',cost:''};
   document.getElementById('modalTitle').textContent=ei!==null?'Edit Event':'Add Event';
   fType.value=e.type;fTime.value=e.time||'';fDesc.value=e.desc||'';fNote.value=e.note||'';fCost.value=e.cost||'';
   overlay.classList.add('on');
