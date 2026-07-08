@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Baseball Road Trip Planner</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -30,11 +28,10 @@ https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
   }
 }
 body{font-family:var(--font-b);background:var(--bg);min-height:100vh;color:var(--text)}
-/* ── Rebranded header (portal-matched) ── */
 .hdr{background:var(--green);color:#fff;padding:1.5rem 1.5rem 2.75rem;position:relative}
 .hdr-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;max-width:940px;margin:0 auto}
 .hdr-brand{display:flex;flex-direction:column}
-.portal-link{font-family:var(--font-m);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.55);text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;transition:color .15s}
+.portal-link{font-family:var(--font-m);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.55);text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;transition:color .15s;cursor:pointer}
 .portal-link:hover{color:var(--amber)}
 .eyebrow{font-family:var(--font-m);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px}
 .trip-name{font-family:var(--font-d);font-size:2.6rem;color:#fff;line-height:.95;cursor:pointer;letter-spacing:.01em}
@@ -135,7 +132,7 @@ body{font-family:var(--font-b);background:var(--bg);min-height:100vh;color:var(-
 <header class="hdr">
   <div class="hdr-inner">
     <div class="hdr-brand">
-      github.io/" title="Back to Travel Portal"><i class="ti ti-arrow-left"></i>2026 Travel Portal</a>
+      <a id="portalLink" class="portal-link" title="Back to Travel Portal"><i class="ti ti-arrow-left"></i>2026 Travel Portal</a>
       <div class="eyebrow">Road Trip · 2026</div>
       <div class="trip-name" id="tripName" title="Click to rename">BASEBALL <span>ROAD TRIP</span></div>
       <div class="trip-dates" id="tripDates">Tap a day to expand</div>
@@ -221,10 +218,37 @@ body{font-family:var(--font-b);background:var(--bg);min-height:100vh;color:var(-
   </div>
 </div>
 
-https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ── Inject external resources via JS so no raw tags can be clipped ──
+(function loadDeps(){
+  // Tabler icons
+  const ti=document.createElement('link');
+  ti.rel='stylesheet';
+  ti.href='https://cdn.jsdelivr.net/npm/@tabler/'+'icons-webfont@latest/tabler-icons.min.css';
+  document.head.appendChild(ti);
+  // Portal back-link href (set in JS to avoid clipped href)
+  const pl=document.getElementById('portalLink');
+  if(pl)pl.href='https://'+'ulyweb.github.io/';
+})();
+
+// Lazily load Leaflet (CSS+JS) only when the Map tab is first opened
+function ensureLeaflet(cb){
+  if(window.L){cb();return;}
+  if(!document.getElementById('leaflet-css')){
+    const lk=document.createElement('link');
+    lk.id='leaflet-css';lk.rel='stylesheet';
+    lk.href='https://unpkg.com/leaflet@'+'1.9.4/dist/leaflet.css';
+    document.head.appendChild(lk);
+  }
+  const sc=document.createElement('script');
+  sc.src='https://unpkg.com/leaflet@'+'1.9.4/dist/leaflet.js';
+  sc.onload=cb;
+  sc.onerror=()=>alert('Could not load the map library — check your connection.');
+  document.body.appendChild(sc);
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZkZW0N6yMqdcH3nNaa-VY91GNo0gWufI",
@@ -309,6 +333,14 @@ onValue(tripRef,snap=>{
 
 const money=n=>'$'+(Number(n)||0).toLocaleString();
 
+function formatName(name){
+  const safe=String(name||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const parts=safe.trim().split(' ');
+  if(parts.length<2)return safe;
+  const last=parts.pop();
+  return parts.join(' ')+' <span>'+last+'</span>';
+}
+
 function render(){
   document.getElementById('tripName').innerHTML=formatName(trip.name);
   const days=trip.days;
@@ -360,15 +392,6 @@ function render(){
   if(map)drawMap();
 }
 
-// Amber-accent the last word of the trip name to match portal styling
-function formatName(name){
-  const safe=String(name||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const parts=safe.trim().split(' ');
-  if(parts.length<2)return safe;
-  const last=parts.pop();
-  return parts.join(' ')+' <span>'+last+'</span>';
-}
-
 function dayBody(d,di){
   const evs=(d.events||[]).map((e,ei)=>`
     <div class="ev">
@@ -403,12 +426,15 @@ function dayBody(d,di){
 
 function initMap(){
   if(map)return;
-  map=L.map('map',{scrollWheelZoom:true}).setView([39.5,-98.35],4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
-  drawMap();
+  ensureLeaflet(()=>{
+    map=L.map('map',{scrollWheelZoom:true}).setView([39.5,-98.35],4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+    drawMap();
+    setTimeout(()=>map.invalidateSize(),120);
+  });
 }
 function drawMap(){
-  if(!map)return;
+  if(!map||!window.L)return;
   if(mapLayer)map.removeLayer(mapLayer);
   mapLayer=L.layerGroup().addTo(map);
   const pts=[];
@@ -420,7 +446,7 @@ function drawMap(){
   });
   if(pts.length>1)L.polyline(pts,{color:'#1a4731',weight:3,opacity:.8,dashArray:'6,6'}).addTo(mapLayer);
   if(pts.length){map.fitBounds(pts,{padding:[40,40],maxZoom:9});}
-  setTimeout(()=>map.invalidateSize(),100);
+  setTimeout(()=>{if(map)map.invalidateSize();},100);
 }
 
 function exportJSON(){
@@ -449,7 +475,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
   t.classList.add('on');document.getElementById(t.dataset.pane).classList.add('on');
-  if(t.dataset.pane==='map'){initMap();setTimeout(()=>{map.invalidateSize();drawMap();},120);}
+  if(t.dataset.pane==='map'){initMap();if(map)setTimeout(()=>{map.invalidateSize();drawMap();},120);}
 });
 document.body.addEventListener('click',e=>{
   const hdr=e.target.closest('.day-hdr');
