@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Travel Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1a4731;--green-mid:#2d6a4f;--amber:#e8a020;--amber-light:#fef3e2;--red:#c0392b;
+  --font-d:'Bebas Neue',sans-serif;--font-m:'DM Mono',monospace;--font-b:'DM Sans',sans-serif;
+  --bg:#f5f4f1;--bg2:#fff;--bg3:#f0efe9;--text:#1a1a1a;--text2:#6b7280;--text3:#9ca3af;
+  --border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--radius:8px;--radius-lg:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#1a1a1a;--bg2:#242424;--bg3:#1e1e1e;--text:#f0f0f0;--text2:#9ca3af;--text3:#6b7280;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);}
+}
+body{font-family:var(--font-b);background:var(--bg);min-height:100vh;color:var(--text)}
+.hdr{background:var(--green);color:#fff;padding:2.5rem 1.5rem 3.25rem;position:relative;text-align:center}
+.eyebrow{font-family:var(--font-m);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:10px}
+.portal-name{font-family:var(--font-d);font-size:3.4rem;color:#fff;line-height:1;letter-spacing:.01em}
+.portal-name span{color:var(--amber)}
+.portal-sub{font-family:var(--font-m);font-size:13px;color:rgba(255,255,255,.7);margin-top:12px}
+.hdr-curve{position:absolute;bottom:-1px;left:0;right:0;height:32px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+.wrap{max-width:960px;margin:0 auto;padding:1.5rem}
+.row-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:.5rem 0 1rem}
+.sec-hd{font-family:var(--font-d);font-size:1.5rem;letter-spacing:.02em}
+.stat-chip{font-family:var(--font-m);font-size:11px;color:var(--text2);background:var(--bg2);border:.5px solid var(--border);border-radius:20px;padding:5px 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;transition:transform .15s,box-shadow .15s,border-color .15s;position:relative}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1);border-color:var(--amber)}
+.card.soon{opacity:.72}
+.card.soon:hover{transform:none;box-shadow:none;border-color:var(--border);cursor:default}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:25px;color:#fff;flex-shrink:0}
+.card-title{font-family:var(--font-d);font-size:1.45rem;letter-spacing:.02em;line-height:1}
+.card-desc{font-size:13px;color:var(--text2);line-height:1.5;flex:1}
+.pill{font-family:var(--font-m);font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:20px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px}
+.pill.live{color:#16794c;background:#d8f3dc}
+.pill.soon{color:#8a5a00;background:var(--amber-light)}
+.card-foot{font-family:var(--font-m);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--green-mid);display:flex;align-items:center;gap:5px;margin-top:2px}
+.card.soon .card-foot{color:var(--text3)}
+.foot{text-align:center;font-family:var(--font-m);font-size:11px;color:var(--text2);padding:2rem 1rem;line-height:1.7}
+.foot .dot{color:var(--amber)}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="eyebrow">Family Hub</div>
+  <div class="portal-name">2026 <span>TRAVEL PORTAL</span></div>
+  <div class="portal-sub">One home for all our linked dashboards ✈️ ⚾ 🏨</div>
+  <div class="hdr-curve"></div>
+</header>
+
+<div class="wrap">
+  <div class="row-hd">
+    <div class="sec-hd">Dashboards</div>
+    <div class="stat-chip" id="statChip">—</div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="foot">
+  Built for the family <span class="dot">·</span> 2026 <span class="dot">·</span> Synced &amp; secured<br>
+  Bookmark this page — it's your front door to every trip.
+</div>
+
+<script>
+// ── Inject Tabler icons via JS (split-string URL = artifact-proof) ──
+(function(){
+  const ti=document.createElement('link');
+  ti.rel='stylesheet';
+  ti.href='https://cdn.jsdelivr.net/npm/@tabler/'+'icons-webfont@latest/tabler-icons.min.css';
+  document.head.appendChild(ti);
+})();
+
+// ── Edit this list to add / rename / activate dashboards ──
+// tag: 'Live' = clickable, opens url in a new tab. 'Coming soon' = greyed placeholder.
+const DASHBOARDS=[
+  {title:'Baseball Road Trip',desc:'Ballpark tour itinerary, route map, costs & live-synced planning.',icon:'ti-ball-baseball',color:'#c0392b',url:'https://ulyweb.github.io/test1/',tag:'Live'},
+  {title:'Europe 2026',desc:'Flights, hotels, and city-by-city plans for the summer trip.',icon:'ti-plane',color:'#1e40af',url:'#',tag:'Coming soon'},
+  {title:'Family Budget',desc:'Shared travel budget and expense tracking across every trip.',icon:'ti-receipt',color:'#2d6a4f',url:'#',tag:'Coming soon'},
+  {title:'Photo Album',desc:'A shared gallery of memories from all our adventures.',icon:'ti-photo',color:'#5b21b6',url:'#',tag:'Coming soon'}
+];
+
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const grid=document.getElementById('grid');
+grid.innerHTML=DASHBOARDS.map(d=>{
+  const live=d.tag==='Live'&&d.url&&d.url!=='#';
+  const attrs=live?`href="${esc(d.url)}" target="_blank" rel="noopener"`:'';
+  return `<a class="card ${live?'':'soon'}" ${attrs}>
+    <div class="card-icon" style="background:${esc(d.color)}"><i class="ti ${esc(d.icon)}"></i></div>
+    <div class="card-title">${esc(d.title)}</div>
+    <div class="card-desc">${esc(d.desc)}</div>
+    <span class="pill ${live?'live':'soon'}"><i class="ti ${live?'ti-circle-check-filled':'ti-clock'}" style="font-size:11px"></i>${esc(d.tag)}</span>
+    <div class="card-foot"><i class="ti ${live?'ti-arrow-right':'ti-lock'}"></i>${live?'Open dashboard':'Not yet available'}</div>
+  </a>`;
+}).join('');
+
+const liveCount=DASHBOARDS.filter(d=>d.tag==='Live').length;
+document.getElementById('statChip').textContent=`${liveCount} live · ${DASHBOARDS.length} total`;
+</script>
+</body>
+</html>
